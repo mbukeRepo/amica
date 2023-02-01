@@ -25,6 +25,7 @@ if (options.query) {
       if (apiKey === null || Number.isNaN(maxCount)) {
         throw new Error();
       }
+      // 2 => production 3 => in testing
       const start = 2;
       const prompt = process.argv.slice(start).join(" ");
       const amica = new Amica({ apiKey, maxCount });

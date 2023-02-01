@@ -38,7 +38,6 @@ export default class Amica {
       keytar.setPassword("amica", "maxCount", count);
       console.log("The maximum character count was set successfully.");
     } catch (error) {
-      console.log(error, process.cwd());
       console.log("Failed to setup maximum character count.");
     }
   }
@@ -63,8 +62,9 @@ export default class Amica {
     } catch (err: any) {
       clearInterval(loading);
       if (err.isAuthError)
-        console.log("Connect amica with open ai with -s option and api-key.");
-      else console.log("Connection Error");
+        console.log("\nConnect amica with open ai with -s option and api-key.");
+      else if (err.response.status === 401) console.log("Invalid api key");
+      else console.log("\nConnection Error");
     }
   }
 }
