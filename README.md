@@ -1,11 +1,4 @@
-<h1 align="center">
-<br>
-<br>
-  Amica 😄
-  <br>
-</h1>
-
-> Your AI friend living in the terminal
+Your AI friend living in the terminal
 
 ## Description
 

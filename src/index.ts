@@ -22,9 +22,13 @@ program
 const options = program.opts();
 
 const getSetupData = async () => {
-  const apiKey = (await keytar.getPassword("amica", "apiKey")) as string;
-  const maxCount = (await keytar.getPassword("amica", "maxCount")) as string;
-  return { apiKey, maxCount };
+  try {
+    const apiKey = (await keytar.getPassword("amica", "apiKey")) as string;
+    const maxCount = (await keytar.getPassword("amica", "maxCount")) as string;
+    return { apiKey, maxCount };
+  } catch (error) {
+    console.log("Please setup api key with amica -s [api-key]");
+  }
 };
 
 const getAmica = ({ apiKey }: Setup) => {
@@ -69,7 +73,7 @@ const queryAmica = async () => {
     clearInterval(loading);
     if (err.isAuthError)
       console.log("Connect amica with open ai with -s option and api-key.");
-    else console.log("Connection Error", err);
+    else console.log("Connection Error");
   }
 };
 const setup = async (apiKey: string) => {
