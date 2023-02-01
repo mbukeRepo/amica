@@ -14,8 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const commander_1 = require("commander");
+const Amica_1 = __importDefault(require("./Amica"));
 const keytar_1 = __importDefault(require("keytar"));
-const openai_1 = require("openai");
 const program = new commander_1.Command();
 program
     .name("amica")
@@ -25,80 +25,43 @@ program
     .option("-m, --maxCount <value>")
     .parse(process.argv);
 const options = program.opts();
-const getSetupData = () => __awaiter(void 0, void 0, void 0, function* () {
-    const apiKey = (yield keytar_1.default.getPassword("amica", "apiKey"));
-    const maxCount = (yield keytar_1.default.getPassword("amica", "maxCount"));
-    return { apiKey, maxCount };
-});
-const getAmica = ({ apiKey }) => {
-    const configuration = new openai_1.Configuration({ apiKey });
-    return new openai_1.OpenAIApi(configuration);
-};
-class AuthError extends Error {
-    constructor(msg) {
-        super(msg);
-        this.isAuthError = true;
-    }
-}
-const queryAmica = () => __awaiter(void 0, void 0, void 0, function* () {
-    // TODO: This should be changed to two in production
-    const start = 2;
-    const prompt = process.argv.slice(start).join(" ");
-    const loading = (function () {
-        var P = ["\\", "|", "/", "-"];
-        var x = 0;
-        return setInterval(function () {
-            process.stdout.write("\r Loading: " + P[x++]);
-            x &= 3;
-        }, 250);
-    })();
-    try {
-        const { apiKey, maxCount } = yield getSetupData();
-        if (apiKey === "")
-            throw new AuthError("Failed to Authenticate");
-        const amica = getAmica({ apiKey });
-        const { data } = yield amica.createCompletion({
-            model: "text-davinci-003",
-            max_tokens: parseInt(maxCount),
-            prompt,
-        });
-        clearInterval(loading);
-        console.log(data.choices[0].text);
-    }
-    catch (err) {
-        clearInterval(loading);
-        if (err.isAuthError)
-            console.log("Connect amica with open ai with -s option and api-key.");
-        else
-            console.log("Connection Error", err);
-    }
-});
-const setup = (apiKey) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        keytar_1.default.setPassword("amica", "apiKey", apiKey);
-        console.log("The api key was saved successfully. You can now use Amica");
-    }
-    catch (error) {
-        console.log("Failed to setup api key");
-    }
-});
-const setMaxCount = (count) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        keytar_1.default.setPassword("amica", "maxCount", count);
-        console.log("The maximum character count was set successfully.");
-    }
-    catch (error) {
-        console.log(error, process.cwd());
-        console.log("Failed to setup maximum character count.");
-    }
-});
 if (options.query) {
-    queryAmica();
+    (() => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const apiKey = (yield keytar_1.default.getPassword("amica", "apiKey"));
+            const maxCount = parseInt((yield keytar_1.default.getPassword("amica", "maxCount")));
+            if (apiKey === null || Number.isNaN(maxCount)) {
+                throw new Error();
+            }
+            const start = 2;
+            const prompt = process.argv.slice(start).join(" ");
+            const amica = new Amica_1.default({ apiKey, maxCount });
+            amica.queryAmica(prompt);
+        }
+        catch (error) {
+            console.log("Please setup api key with amica -s [api-key]");
+            console.log("then setup the maxCount(quality of your resuluts) with");
+            console.log("amica -m <maxCount>");
+        }
+    }))();
 }
 if (options.setup) {
-    setup(options.setup);
+    (() => __awaiter(void 0, void 0, void 0, function* () {
+        yield Amica_1.default.setup(options.setup);
+    }))();
 }
 if (options.maxCount) {
-    setMaxCount(options.maxCount);
+    (() => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            if (Number.isNaN(parseInt(options.maxCount)) ||
+                parseInt(options.maxCount) > 1500 ||
+                parseInt(options.maxCount) < 1)
+                throw new Error();
+            Amica_1.default.setMaxCount(options.maxCount);
+        }
+        catch (error) {
+            console.log("Max Count should be a number between 1 and 1500");
+        }
+    }))();
 }
 //# sourceMappingURL=index.js.map
